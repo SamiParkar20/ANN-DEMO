@@ -1,0 +1,281 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>MNIST ANN Learning Simulator</title>
+
+    <link rel="stylesheet" href="style.css">
+
+    <!-- TensorFlow.js -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js"></script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+<header>
+    <h1>MNIST ANN Learning Simulator</h1>
+    <p>Artificial Neural Network using Backpropagation</p>
+</header>
+
+<main>
+
+    <section class="status-card">
+        <h2>System Status</h2>
+        <p id="status">Initializing TensorFlow.js...</p>
+    </section>
+
+    <section class="architecture-card">
+        <h2>Neural Network Architecture</h2>
+
+        <div class="architecture">
+            <div class="layer input-layer">
+                <h3>Input Layer</h3>
+                <strong>784</strong>
+                <p>Pixel values</p>
+            </div>
+
+            <div class="arrow">→</div>
+
+            <div class="layer hidden-layer">
+                <h3>Hidden Layer</h3>
+                <strong>128</strong>
+                <p>ReLU</p>
+            </div>
+
+            <div class="arrow">→</div>
+
+            <div class="layer output-layer">
+                <h3>Output Layer</h3>
+                <strong>10</strong>
+                <p>Softmax (0–9)</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="training-card">
+
+        <h2>ANN Training</h2>
+
+        <p>
+            Train the neural network using forward propagation
+            and backpropagation.
+        </p>
+
+        <button id="train-btn" disabled>
+            Loading ANN...
+        </button>
+
+        <div class="progress-container">
+            <div id="progress-bar"></div>
+        </div>
+
+        <p id="progress-text">Waiting for training...</p>
+
+        <div class="metrics">
+
+            <div class="metric">
+                <span>Epoch</span>
+                <strong id="epoch">0 / 10</strong>
+            </div>
+
+            <div class="metric">
+                <span>Training Loss</span>
+                <strong id="loss">--</strong>
+            </div>
+
+            <div class="metric">
+                <span>Training Accuracy</span>
+                <strong id="accuracy">--</strong>
+            </div>
+
+        </div>
+
+    </section>
+
+    <section class="chart-card">
+
+        <h2>Training Loss vs Epoch</h2>
+
+        <canvas id="loss-chart"></canvas>
+
+    </section>
+
+    <section class="weights-card">
+
+        <h2>Live Weight Monitoring</h2>
+
+        <p>
+            Actual neural network weights from the input-to-hidden
+            layer. Values update during training.
+        </p>
+
+        <div id="weight-values">
+            Waiting for training...
+        </div>
+
+    </section>
+
+    <section class="weight-history-card">
+
+        <h2>Weight Changes During Training</h2>
+
+        <p>
+            Observe how actual neural network weights
+            change after each training epoch.
+        </p>
+
+        <canvas id="weight-chart"></canvas>
+
+    </section>
+
+<section class="network-visual-card">
+
+    <h2>ANN Learning Visualization</h2>
+
+    <p>
+        Watch neurons communicate through forward propagation
+        and backpropagation.
+    </p>
+
+    <div class="network-controls">
+
+        <button id="forward-btn">
+            Forward Propagation
+        </button>
+
+        <button id="backward-btn">
+            Backpropagation
+        </button>
+
+        <button id="reset-network-btn">
+            Reset Visualization
+        </button>
+
+    </div>
+
+    <div id="network-status">
+        Ready to visualize the neural network.
+    </div>
+
+    <div id="network-diagram">
+        <!-- Neural network diagram will be generated here -->
+    </div>
+
+    <div class="network-legend">
+
+        <span>🔵 Input layer</span>
+        <span>🟣 Hidden layer</span>
+        <span>🟢 Output layer</span>
+
+    </div>
+
+</section>
+
+
+
+    <!-- INTERACTIVE DIGIT DRAWING -->
+
+    <section class="drawing-card">
+
+        <h2>Interactive Digit Recognition</h2>
+
+        <p>
+            Draw a handwritten digit from 0 to 9
+            using the pixel grid below.
+        </p>
+
+        
+<div class="drawing-container">
+
+    <div class="drawing-input-panel">
+        <h3>Your Drawing</h3>
+        <div id="drawing-grid"></div>
+    </div>
+
+    <div class="processed-preview">
+        <h3>Processed Image (28 × 28)</h3>
+
+        <canvas
+            id="processed-preview-canvas"
+            width="28"
+            height="28">
+        </canvas>
+
+        <p>ANN Input: 784 pixels</p>
+    </div>
+
+</div>
+
+
+        <div class="drawing-controls">
+
+            <button id="clear-drawing-btn">
+                Clear Drawing
+            </button>
+
+            <button id="predict-digit-btn" disabled>
+                Predict Digit
+            </button>
+
+        </div>
+
+        <div id="drawing-status">
+            Draw a digit to get started.
+        </div>
+
+        <div id="drawing-result">
+
+            <h3>Recognition Result</h3>
+
+            <div id="predicted-digit">?</div>
+
+            <p id="prediction-confidence">
+                Waiting for prediction...
+            </p>
+
+        </div>
+
+    </section>
+
+    <!-- END INTERACTIVE DIGIT DRAWING -->
+
+
+    <section class="testing-card">
+
+        <h2>ANN Testing</h2>
+
+        <p id="test-status">
+            Testing will be performed after training.
+        </p>
+
+        <div id="prediction-result">
+            Awaiting trained model...
+        </div>
+
+    </section>
+
+    <section class="samples-card">
+
+        <h2>MNIST Dataset Preview</h2>
+
+        <p>Sample handwritten digits from the dataset.</p>
+
+        <div id="sample-grid">
+            Waiting for dataset...
+        </div>
+
+    </section>
+
+</main>
+
+<script src="data.js"></script>
+<script src="script.js"></script>
+
+</body>
+</html>
