@@ -136,32 +136,33 @@ async function displaySamples() {
 // BUILD NEURAL NETWORK
 // ======================================
 
+
 function buildModel() {
 
     model = tf.sequential({
 
         layers: [
 
+            // Input Layer: 784 neurons
             tf.layers.dense({
-
                 inputShape: [784],
-
                 units: 128,
-
                 activation: "relu",
-
-                name: "hidden_layer"
-
+                name: "hidden_layer_1"
             }),
 
+            // Second Hidden Layer: 64 neurons
             tf.layers.dense({
+                units: 64,
+                activation: "relu",
+                name: "hidden_layer_2"
+            }),
 
+            // Output Layer: 10 neurons
+            tf.layers.dense({
                 units: 10,
-
                 activation: "softmax",
-
                 name: "output_layer"
-
             })
 
         ]
@@ -180,19 +181,23 @@ function buildModel() {
 
     model.summary();
 
+    // Capture initial weights from the first hidden layer
     const fullWeights =
-    model.layers[0].getWeights()[0];
+        model.layers[0].getWeights()[0];
 
-initialFullWeights =
-    Array.from(fullWeights.dataSync());
+    initialFullWeights =
+        Array.from(fullWeights.dataSync());
 
-    // Capture initial weights before training.
-initialWeightSnapshot = readSelectedWeights();
+    initialWeightSnapshot = readSelectedWeights();
 
-previousWeightSnapshot = [...initialWeightSnapshot];
+    previousWeightSnapshot = [...initialWeightSnapshot];
 
-console.log("Initial weights:", initialWeightSnapshot);
+    console.log("Updated ANN Architecture:");
+    console.log("784 → 128 → 64 → 10");
+
+    console.log("Initial weights:", initialWeightSnapshot);
 }
+
 
 
 // ======================================
@@ -835,7 +840,20 @@ function displayDigit9(sample, accuracy, total, correct) {
 
     const heading = document.createElement("h3");
 
-    heading.textContent = "Handwritten Digit Recognition";
+    heading.textContent =
+    "MNIST Test Dataset – Random Example";
+    const explanation = document.createElement("p");
+
+explanation.textContent =
+    "This is a randomly selected handwritten digit " +
+    "from the MNIST testing dataset (10,000 unseen images). " +
+    "It is independent of the digit drawn above.";
+
+explanation.style.color = "#94a3b8";
+explanation.style.textAlign = "center";
+explanation.style.fontSize = "15px";
+explanation.style.margin = "15px auto 25px";
+explanation.style.maxWidth = "700px";
 
     const image = document.createElement("div");
 
@@ -876,39 +894,133 @@ function displayDigit9(sample, accuracy, total, correct) {
     countText.textContent =
         `Correct: ${correct} / ${total} test images`;
 
-    const probabilityHeading = document.createElement("h3");
+    
+// ======================================
+// DISPLAY ALL 10 PREDICTION PROBABILITIES
+// ======================================
 
-    probabilityHeading.textContent =
-        "Prediction probabilities (0–9)";
+const probabilityHeading = document.createElement("h3");
 
-    const probabilityGrid = document.createElement("div");
+probabilityHeading.textContent =
+    "Prediction Probabilities (0–9)";
 
-    probabilityGrid.className = "probability-grid";
+const probabilitySubtitle = document.createElement("p");
 
-    sample.probabilities.forEach((probability, digit) => {
+probabilitySubtitle.className = "probability-subtitle";
 
-        const item = document.createElement("div");
+probabilitySubtitle.textContent =
+    "The model assigns a probability to each possible digit.";
 
-        item.className = "probability-item";
+const probabilityGrid = document.createElement("div");
 
-        item.textContent =
-            `${digit}: ${(probability * 100).toFixed(1)}%`;
+probabilityGrid.className = "probability-list";
 
-        probabilityGrid.appendChild(item);
-    });
+sample.probabilities.forEach((probability, digit) => {
 
-    container.append(
-        heading,
-        image,
-        actual,
-        predicted,
-        confidenceText,
-        result,
-        accuracyText,
-        countText,
-        probabilityHeading,
-        probabilityGrid
-    );
+    const percentage = probability * 100;
+
+    const isPredicted = digit === sample.predicted;
+
+    // Individual probability row
+    const item = document.createElement("div");
+
+    item.className = isPredicted
+        ? "probability-row is-predicted"
+        : "probability-row";
+
+    // Digit label
+    const digitLabel = document.createElement("span");
+
+    digitLabel.className = "probability-digit";
+
+    digitLabel.textContent = digit;
+
+    // Progress bar background
+    const track = document.createElement("div");
+
+    track.className = "probability-track";
+
+    // Actual probability bar
+    const fill = document.createElement("div");
+
+    fill.className = isPredicted
+        ? "probability-fill is-predicted-fill"
+        : "probability-fill";
+
+    fill.style.width = percentage + "%";
+
+    track.appendChild(fill);
+
+    // Probability percentage
+    const value = document.createElement("span");
+
+    value.className = "probability-value";
+
+    value.textContent = percentage.toFixed(2) + "%";
+
+    // Predicted indicator
+    if (isPredicted) {
+
+        const badge = document.createElement("span");
+
+        badge.className = "predicted-badge";
+
+        badge.textContent = "PREDICTED";
+
+        item.append(
+            digitLabel,
+            track,
+            value,
+            badge
+        );
+
+    } else {
+
+        item.append(
+            digitLabel,
+            track,
+            value
+        );
+
+    }
+
+    probabilityGrid.appendChild(item);
+
+});
+
+// Explanation below probability bars
+const probabilityExplanation = document.createElement("div");
+
+probabilityExplanation.className = "probability-explanation";
+
+probabilityExplanation.innerHTML = `
+    <strong>Why was digit ${sample.predicted} selected?</strong>
+    <p>
+        The output neuron for digit ${sample.predicted}
+        produced the highest probability among all
+        ten possible classes.
+    </p>
+    <small>
+        The model selects the class with the highest output score.
+    </small>
+`;
+
+
+    
+container.append(
+    heading,
+    explanation,
+    image,
+    actual,
+    predicted,
+    confidenceText,
+    result,
+    accuracyText,
+    countText,
+    probabilityHeading,
+    probabilityGrid
+);
+
 }
 
 
@@ -928,8 +1040,10 @@ document.getElementById("train-btn")
 initializeApp();
 
 
+
+
 /* =========================================
-   ANN NETWORK VISUALIZATION
+   FOUR-LAYER ANN LEARNING VISUALIZATION
 ========================================= */
 
 (function initializeNetworkVisualization() {
@@ -942,399 +1056,874 @@ initializeApp();
     const resetBtn = document.getElementById("reset-network-btn");
 
     if (!container || !status ||
-        !forwardBtn || !backwardBtn || !resetBtn) {
-        console.error("Network visualization elements not found.");
-        return;
-    }
+        !forwardBtn || !backwardBtn || !resetBtn) return;
 
-    const SVG_NS = "http://www.w3.org/2000/svg";
+    const NS = "http://www.w3.org/2000/svg";
 
-    const width = 900;
-    const height = 440;
+    const W = 1100;
+    const H = 500;
 
-    const inputCount = 5;
-    const hiddenCount = 6;
+    // Four layer positions
+    const inputX = 110;
+    const hidden1X = 390;
+    const hidden2X = 710;
+    const outputX = 990;
+
+    // Display representative neurons
+    const inputCount = 8;
+    const hidden1Count = 8;
+    const hidden2Count = 8;
     const outputCount = 10;
 
-    const inputX = 110;
-    const hiddenX = 450;
-    const outputX = 790;
+    let running = false;
 
-    const svg = document.createElementNS(SVG_NS, "svg");
+    let svg;
 
-    svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
-    svg.setAttribute("role", "img");
-    svg.setAttribute(
-        "aria-label",
-        "Neural network with input, hidden and output layers"
-    );
+    let edges = [];
 
-    const edgeLayer = document.createElementNS(SVG_NS, "g");
-    const neuronLayer = document.createElementNS(SVG_NS, "g");
-    const labelLayer = document.createElementNS(SVG_NS, "g");
+    let inputNodes = [];
+    let hidden1Nodes = [];
+    let hidden2Nodes = [];
+    let outputNodes = [];
 
-    svg.append(edgeLayer, neuronLayer, labelLayer);
+    function element(tag, attrs, parent) {
 
-    const inputs = [];
-    const hidden = [];
-    const outputs = [];
+        const el = document.createElementNS(NS, tag);
 
-    const edges = [];
-
-    function createElement(tag, attributes, parent) {
-
-        const element = document.createElementNS(SVG_NS, tag);
-
-        Object.entries(attributes).forEach(([key, value]) => {
-            element.setAttribute(key, value);
+        Object.entries(attrs).forEach(([key, value]) => {
+            el.setAttribute(key, value);
         });
 
-        parent.appendChild(element);
+        parent.appendChild(el);
 
-        return element;
+        return el;
     }
 
-    function createLabel(x, y, text) {
+    function label(x, y, text, size = 17) {
 
-        const label = createElement("text", {
+        const el = element("text", {
             x,
             y,
-            class: "network-layer-label"
-        }, labelLayer);
+            fill: "#e2e8f0",
+            "font-size": size,
+            "font-weight": "bold",
+            "text-anchor": "middle"
+        }, svg);
 
-        label.textContent = text;
+        el.textContent = text;
+
+        return el;
     }
 
-    function createNeuron(id, x, y, type, label) {
+    function createNeuron(x, y, type, text) {
 
-        const group = createElement("g", {
-            id,
+        const group = element("g", {
             class: "neuron-group"
-        }, neuronLayer);
+        }, svg);
 
-        const circle = createElement("circle", {
+        const circle = element("circle", {
             cx: x,
             cy: y,
-            r: 15,
-            class: `network-neuron ${type}-neuron`,
-            id: `${id}-circle`
+            r: 20,
+            class: `network-neuron ${type}-neuron`
         }, group);
 
-        const text = createElement("text", {
+        const value = element("text", {
             x,
             y: y + 4,
-            "text-anchor": "middle",
             fill: "#ffffff",
-            "font-size": "11",
+            "font-size": "10",
             "font-weight": "bold",
+            "text-anchor": "middle",
             "pointer-events": "none"
         }, group);
 
-        text.textContent = label;
+        value.textContent = text;
 
-        return { id, x, y, circle };
+        return {
+            group,
+            circle,
+            value,
+            x,
+            y,
+            type
+        };
     }
 
-    function connectNeurons(source, target, id) {
+    function connect(source, target, layer) {
 
-        const line = createElement("line", {
+        const line = element("line", {
             x1: source.x,
             y1: source.y,
             x2: target.x,
             y2: target.y,
-            class: "network-edge",
-            id
-        }, edgeLayer);
+            class: "network-edge"
+        }, svg);
+
+        line.setAttribute("data-layer", layer);
 
         edges.push({
             line,
-            source,
-            target
+            layer
         });
+
     }
 
-    // Layer labels
+    function buildNetwork() {
 
-    createLabel(inputX, 25, "INPUT LAYER");
-    createLabel(hiddenX, 25, "HIDDEN LAYER");
-    createLabel(outputX, 25, "OUTPUT LAYER");
+        container.innerHTML = "";
 
-    // Create input neurons
+        edges = [];
 
-    for (let i = 0; i < inputCount; i++) {
+        inputNodes = [];
+        hidden1Nodes = [];
+        hidden2Nodes = [];
+        outputNodes = [];
 
-        const y = 100 + i * 58;
+        svg = element("svg", {
+            viewBox: `0 0 ${W} ${H}`,
+            role: "img",
+            "aria-label": "Four-layer artificial neural network"
+        }, container);
 
-        inputs.push(
-            createNeuron(
-                `input-${i}`,
+        // Layer headings
+
+        label(inputX, 35, "INPUT LAYER");
+        label(hidden1X, 35, "HIDDEN LAYER 1");
+        label(hidden2X, 35, "HIDDEN LAYER 2");
+        label(outputX, 35, "OUTPUT LAYER");
+
+        label(inputX, 65, "784 neurons", 12);
+        label(hidden1X, 65, "128 neurons", 12);
+        label(hidden2X, 65, "64 neurons", 12);
+        label(outputX, 65, "10 classes", 12);
+
+        // INPUT LAYER
+
+        for (let i = 0; i < inputCount; i++) {
+
+            const y = 105 + i * 43;
+
+            const node = createNeuron(
                 inputX,
                 y,
                 "input",
-                i + 1
-            )
-        );
-    }
+                "0.00"
+            );
 
-    // Create hidden neurons
+            inputNodes.push(node);
+        }
 
-    for (let i = 0; i < hiddenCount; i++) {
+        // HIDDEN LAYER 1
 
-        const y = 85 + i * 54;
+        for (let i = 0; i < hidden1Count; i++) {
 
-        hidden.push(
-            createNeuron(
-                `hidden-${i}`,
-                hiddenX,
+            const y = 105 + i * 43;
+
+            const node = createNeuron(
+                hidden1X,
                 y,
                 "hidden",
-                i + 1
-            )
-        );
-    }
+                "0.00"
+            );
 
-    // Create output neurons
+            hidden1Nodes.push(node);
+        }
 
-    for (let i = 0; i < outputCount; i++) {
+        // HIDDEN LAYER 2
 
-        const y = 48 + i * 39;
+        for (let i = 0; i < hidden2Count; i++) {
 
-        outputs.push(
-            createNeuron(
-                `output-${i}`,
+            const y = 105 + i * 43;
+
+            const node = createNeuron(
+                hidden2X,
+                y,
+                "hidden",
+                "0.00"
+            );
+
+            hidden2Nodes.push(node);
+        }
+
+        // OUTPUT LAYER
+
+        for (let i = 0; i < outputCount; i++) {
+
+            const y = 85 + i * 36;
+
+            const node = createNeuron(
                 outputX,
                 y,
                 "output",
-                i
-            )
+                String(i)
+            );
+
+            outputNodes.push(node);
+        }
+
+        
+// INPUT -> HIDDEN 1
+// Show only representative connections
+
+inputNodes.forEach((input, i) => {
+
+    for (let k = 0; k < 3; k++) {
+
+        const targetIndex = (i * 2 + k * 3) % hidden1Nodes.length;
+
+        connect(
+            input,
+            hidden1Nodes[targetIndex],
+            "forward-1"
         );
+
     }
 
-    // Connect input to hidden layer
+});
 
-    inputs.forEach((input, i) => {
 
-        hidden.forEach((neuron, j) => {
+// HIDDEN 1 -> HIDDEN 2
 
-            connectNeurons(
-                input,
-                neuron,
-                `input-hidden-${i}-${j}`
-            );
+hidden1Nodes.forEach((hidden, i) => {
 
-        });
+    for (let k = 0; k < 3; k++) {
 
-    });
+        const targetIndex = (i * 2 + k * 3) % hidden2Nodes.length;
 
-    // Connect hidden to output layer
+        connect(
+            hidden,
+            hidden2Nodes[targetIndex],
+            "forward-2"
+        );
 
-    hidden.forEach((neuron, i) => {
+    }
 
-        outputs.forEach((output, j) => {
+});
 
-            connectNeurons(
-                neuron,
-                output,
-                `hidden-output-${i}-${j}`
-            );
 
-        });
+// HIDDEN 2 -> OUTPUT
 
-    });
+hidden2Nodes.forEach((hidden, i) => {
 
-    // Layer descriptions
+    for (let k = 0; k < 3; k++) {
 
-    createLabel(inputX, 410, "784 actual inputs");
-    createLabel(hiddenX, 410, "128 actual neurons");
-    createLabel(outputX, 410, "10 digit classes");
+        const targetIndex = (i * 3 + k * 2) % outputNodes.length;
 
-    container.replaceChildren(svg);
+        connect(
+            hidden,
+            outputNodes[targetIndex],
+            "forward-3"
+        );
 
-    // Animation helpers
+    }
 
-    const sleep = ms =>
-        new Promise(resolve => setTimeout(resolve, ms));
+});
+
+
+        label(250, 475, "WEIGHTED CONNECTIONS", 12);
+        label(550, 475, "FEATURE EXTRACTION", 12);
+        label(850, 475, "CLASSIFICATION", 12);
+        // Keep all neuron circles and values above connection lines
+[
+    ...inputNodes,
+    ...hidden1Nodes,
+    ...hidden2Nodes,
+    ...outputNodes
+].forEach(node => {
+    svg.appendChild(node.group);
+});
+
+    }
 
     function clearAnimation() {
 
-        svg.querySelectorAll(".network-edge").forEach(edge => {
-            edge.classList.remove(
+        edges.forEach(edge => {
+
+            edge.line.classList.remove(
                 "active-forward",
                 "active-backward"
             );
+
         });
 
-        svg.querySelectorAll(".neuron-group").forEach(neuron => {
-            neuron.classList.remove("active-neuron");
+        [
+            ...inputNodes,
+            ...hidden1Nodes,
+            ...hidden2Nodes,
+            ...outputNodes
+        ].forEach(node => {
+
+            node.group.classList.remove("active-neuron");
+
         });
+
     }
 
-    function activateNeurons(neurons) {
+    function activateNodes(nodes) {
 
-        neurons.forEach(neuron => {
-            neuron.circle.parentElement.classList.add(
-                "active-neuron"
-            );
-        });
-    }
+        nodes.forEach(node => {
 
-    function activateEdges(sourceLayer, targetLayer, direction) {
-
-        edges.forEach(edge => {
-
-            const belongsToConnection =
-                sourceLayer.includes(edge.source) &&
-                targetLayer.includes(edge.target);
-
-            if (belongsToConnection) {
-                edge.line.classList.add(
-                    direction === "forward"
-                        ? "active-forward"
-                        : "active-backward"
-                );
-            }
+            node.group.classList.add("active-neuron");
 
         });
+
     }
 
-    let animationRunning = false;
+    
+async function activateConnections(layer, direction) {
+
+    const matchingEdges = edges.filter(
+        edge => edge.layer === layer
+    );
+
+    const activeClass = direction === "forward"
+        ? "active-forward"
+        : "active-backward";
+
+    // Animate 3 connections at a time
+    for (let i = 0; i < matchingEdges.length; i += 3) {
+
+        const group = matchingEdges.slice(i, i + 3);
+
+        group.forEach(edge => {
+            edge.line.classList.add(activeClass);
+        });
+
+        await sleep(250);
+
+        group.forEach(edge => {
+            edge.line.classList.remove(activeClass);
+        });
+
+    }
+
+}
+
+
+    function sleep(ms) {
+
+        return new Promise(resolve => setTimeout(resolve, ms));
+
+    }
+
+    function updateNodeValues(nodes, values) {
+
+        nodes.forEach((node, i) => {
+
+            node.value.textContent =
+                Number(values[i] || 0).toFixed(2);
+
+        });
+
+    }
+
+    // Get actual input from drawing or MNIST
+
+    async function getInputSample() {
+
+        if (typeof drawnPixels !== "undefined" &&
+            drawnPixels.some(pixel => pixel > 0)) {
+
+            return {
+                values: preprocessDrawnPixels(),
+                source: "your drawing"
+            };
+
+        }
+
+        const batch = mnistData.nextTestBatch(1);
+
+        const values = Array.from(batch.xs.dataSync());
+
+        batch.xs.dispose();
+        batch.labels.dispose();
+
+        return {
+            values,
+            source: "a sample from MNIST testing data"
+        };
+
+    }
+
+    // ======================================
+    // FORWARD PROPAGATION
+    // ======================================
 
     async function forwardPropagation() {
 
-        if (animationRunning) return;
+        if (running) return;
 
-        animationRunning = true;
-        clearAnimation();
+        if (!isModelTrained || !model || !mnistData) {
 
-        forwardBtn.disabled = true;
-        backwardBtn.disabled = true;
+            status.textContent =
+                "Please train the ANN first before visualizing.";
 
-        status.textContent =
-            "Step 1: Forward propagation – Input signals enter the network.";
+            return;
+        }
 
-        activateNeurons(inputs);
-
-        await sleep(900);
-
-        status.textContent =
-            "Step 2: Signals travel from input neurons to hidden neurons.";
-
-        activateEdges(inputs, hidden, "forward");
-        activateNeurons(hidden);
-
-        await sleep(1200);
-
-        status.textContent =
-            "Step 3: Hidden neurons process the weighted inputs.";
-
-        await sleep(900);
-
-        status.textContent =
-            "Step 4: Signals reach the output neurons (digits 0–9).";
-
-        activateEdges(hidden, outputs, "forward");
-        activateNeurons(outputs);
-
-        await sleep(1200);
-
-        status.textContent =
-            "Forward propagation completed. The network has produced an output.";
-
-        forwardBtn.disabled = false;
-        backwardBtn.disabled = false;
-
-        animationRunning = false;
-    }
-
-    async function backwardPropagation() {
-
-        if (animationRunning) return;
-
-        animationRunning = true;
-        clearAnimation();
+        running = true;
 
         forwardBtn.disabled = true;
         backwardBtn.disabled = true;
-
-        status.textContent =
-            "Step 1: Calculate the prediction error.";
-
-        activateNeurons(outputs);
-
-        await sleep(900);
-
-        status.textContent =
-            "Step 2: Backpropagation sends error gradients towards the hidden layer.";
-
-        activateEdges(hidden, outputs, "backward");
-        activateNeurons(hidden);
-
-        await sleep(1200);
-
-        status.textContent =
-            "Step 3: Gradients continue towards the input layer.";
-
-        activateEdges(inputs, hidden, "backward");
-        activateNeurons(inputs);
-
-        await sleep(1200);
-
-        status.textContent =
-            "Backpropagation demonstration completed. Gradients have been visualized.";
-
-        forwardBtn.disabled = false;
-        backwardBtn.disabled = false;
-
-        animationRunning = false;
-    }
-
-    forwardBtn.addEventListener("click", forwardPropagation);
-
-    backwardBtn.addEventListener("click", backwardPropagation);
-
-    resetBtn.addEventListener("click", () => {
-
-        if (animationRunning) return;
+        resetBtn.disabled = true;
 
         clearAnimation();
 
+        let inputTensor;
+        let hidden1Tensor;
+        let hidden2Tensor;
+        let outputTensor;
+
+        try {
+
+            const sample = await getInputSample();
+
+            inputTensor = tf.tensor2d(
+                sample.values,
+                [1, 784]
+            );
+
+            // Actual first hidden layer activation
+
+            hidden1Tensor = model.layers[0].apply(inputTensor);
+
+            const hidden1Values =
+                Array.from(hidden1Tensor.dataSync());
+
+            // Actual second hidden layer activation
+
+            hidden2Tensor = model.layers[1].apply(hidden1Tensor);
+
+            const hidden2Values =
+                Array.from(hidden2Tensor.dataSync());
+
+            // Actual output probabilities
+
+            outputTensor = model.predict(inputTensor);
+
+            const probabilities =
+                Array.from(outputTensor.dataSync());
+
+            // Select strongest 8 input pixels
+
+            const selectedInputs = sample.values
+                .map((value, index) => ({ value, index }))
+                .sort((a, b) => b.value - a.value)
+                .slice(0, 8);
+
+            // Select strongest 8 first hidden neurons
+
+            const selectedHidden1 = hidden1Values
+                .map((value, index) => ({ value, index }))
+                .sort((a, b) => b.value - a.value)
+                .slice(0, 8);
+
+            // Select strongest 8 second hidden neurons
+
+            const selectedHidden2 = hidden2Values
+                .map((value, index) => ({ value, index }))
+                .sort((a, b) => b.value - a.value)
+                .slice(0, 8);
+
+            updateNodeValues(
+                inputNodes,
+                selectedInputs.map(item => item.value)
+            );
+
+            updateNodeValues(
+                hidden1Nodes,
+                selectedHidden1.map(item => item.value)
+            );
+
+            updateNodeValues(
+                hidden2Nodes,
+                selectedHidden2.map(item => item.value)
+            );
+
+            updateNodeValues(outputNodes, probabilities);
+
+            // STEP 1
+
+            status.textContent =
+                `Using ${sample.source}. ` +
+                "STEP 1: Input pixels enter the network.";
+
+            activateNodes(inputNodes);
+
+            await sleep(1000);
+
+            await activateConnections("forward-1", "forward");
+
+            activateNodes(hidden1Nodes);
+
+            // STEP 2
+
+            await sleep(1300);
+
+            status.textContent =
+                "STEP 2: Hidden Layer 1 applies weighted sums and ReLU.";
+
+            await sleep(1000);
+
+            activateConnections("forward-2", "forward");
+
+            activateNodes(hidden2Nodes);
+
+            // STEP 3
+
+            await sleep(1300);
+
+            status.textContent =
+                "STEP 3: Hidden Layer 2 extracts further features using ReLU.";
+
+            await sleep(1000);
+
+            await activateConnections("forward-3", "forward");
+
+            activateNodes(outputNodes);
+
+            // STEP 4
+
+            await sleep(1300);
+
+            const predicted = probabilities.indexOf(
+                Math.max(...probabilities)
+            );
+
+            status.textContent =
+                `STEP 4: Softmax calculates output probabilities. ` +
+                `Predicted digit: ${predicted} ` +
+                `(${(probabilities[predicted] * 100).toFixed(2)}%).`;
+
+        } catch (error) {
+
+            console.error("Forward propagation:", error);
+
+            status.textContent =
+                "Visualization error: " + error.message;
+
+        } finally {
+
+            if (inputTensor) inputTensor.dispose();
+            if (hidden1Tensor) hidden1Tensor.dispose();
+            if (hidden2Tensor) hidden2Tensor.dispose();
+            if (outputTensor) outputTensor.dispose();
+
+            running = false;
+
+            forwardBtn.disabled = false;
+            backwardBtn.disabled = false;
+            resetBtn.disabled = false;
+
+        }
+
+    }
+
+    // ======================================
+    // BACKPROPAGATION
+    // ======================================
+
+    
+async function backwardPropagation() {
+
+    if (running) return;
+
+    if (!isModelTrained || !model || !mnistData) {
+
         status.textContent =
-            "Network reset. Ready for the next demonstration.";
+            "Please train the ANN first before demonstrating backpropagation.";
 
-    });
+        return;
+    }
 
-    console.log("ANN network visualization initialized.");
-    console.log("Input neurons displayed:", inputCount);
-    console.log("Hidden neurons displayed:", hiddenCount);
-    console.log("Output neurons displayed:", outputCount);
-    console.log("Total displayed connections:", edges.length);
+    running = true;
+
+    forwardBtn.disabled = true;
+    backwardBtn.disabled = true;
+    resetBtn.disabled = true;
+
+    clearAnimation();
+
+    let batch;
+    let predictionBefore;
+    let predictionAfter;
+
+    try {
+
+        // STEP 1: Get a training sample
+
+        status.textContent =
+            "Preparing a training sample from MNIST...";
+
+        batch = mnistData.nextTrainBatch(1);
+
+        const labels = Array.from(batch.labels.dataSync());
+
+        const actualLabel = labels.indexOf(
+            Math.max(...labels)
+        );
+
+        // STEP 2: Make prediction BEFORE updating weights
+
+        predictionBefore = model.predict(batch.xs);
+
+        const probabilitiesBefore =
+            Array.from(predictionBefore.dataSync());
+
+        const predictedBefore = probabilitiesBefore.indexOf(
+            Math.max(...probabilitiesBefore)
+        );
+
+        // Calculate actual categorical cross-entropy loss
+
+        let lossBefore = 0;
+
+        for (let i = 0; i < labels.length; i++) {
+
+            lossBefore -= labels[i] *
+                Math.log(probabilitiesBefore[i] + 1e-7);
+
+        }
+
+        predictionBefore.dispose();
+        predictionBefore = null;
+
+        updateNodeValues(outputNodes, probabilitiesBefore);
+
+        activateNodes(outputNodes);
+
+        status.textContent =
+            `STEP 1: Actual digit: ${actualLabel}. ` +
+            `Predicted digit: ${predictedBefore}.`;
+
+        await sleep(1500);
+
+        // STEP 3: Explain prediction error
+
+        status.textContent =
+            `STEP 2: Calculated prediction loss: ${lossBefore.toFixed(4)}. ` +
+            "The network needs to adjust its weights.";
+
+        await sleep(1500);
+
+        // STEP 4: Backpropagation - OUTPUT TO HIDDEN 2
+
+        status.textContent =
+            "STEP 3: Error gradients travel backwards from Output to Hidden Layer 2.";
+
+        await activateConnections(
+            "forward-3",
+            "backward"
+        );
+
+        activateNodes(hidden2Nodes);
+
+        await sleep(800);
+
+        // STEP 5: HIDDEN 2 TO HIDDEN 1
+
+        status.textContent =
+            "STEP 4: Gradients continue backwards through Hidden Layer 2 to Hidden Layer 1.";
+
+        await activateConnections(
+            "forward-2",
+            "backward"
+        );
+
+        activateNodes(hidden1Nodes);
+
+        await sleep(800);
+
+        // STEP 6: HIDDEN 1 TO INPUT
+
+        status.textContent =
+            "STEP 5: Backpropagation reaches the input side of the network.";
+
+        await activateConnections(
+            "forward-1",
+            "backward"
+        );
+
+        activateNodes(inputNodes);
+
+        await sleep(1200);
+
+        // STEP 7: ACTUAL WEIGHT UPDATE
+
+        status.textContent =
+            "STEP 6: TensorFlow.js calculates gradients and updates the actual ANN weights...";
+
+        const trainingResult = await model.trainOnBatch(
+            batch.xs,
+            batch.labels
+        );
+
+        // STEP 8: Check prediction after weight update
+
+        predictionAfter = model.predict(batch.xs);
+
+        const probabilitiesAfter =
+            Array.from(predictionAfter.dataSync());
+
+        let lossAfter = 0;
+
+        for (let i = 0; i < labels.length; i++) {
+
+            lossAfter -= labels[i] *
+                Math.log(probabilitiesAfter[i] + 1e-7);
+
+        }
+
+        predictionAfter.dispose();
+        predictionAfter = null;
+
+        updateNodeValues(outputNodes, probabilitiesAfter);
+
+        const newPrediction = probabilitiesAfter.indexOf(
+            Math.max(...probabilitiesAfter)
+        );
+
+        const resultLoss = Array.isArray(trainingResult)
+            ? Number(trainingResult[0])
+            : Number(trainingResult);
+
+        // FINAL RESULT
+
+        status.textContent =
+            `BACKPROPAGATION COMPLETED! ` +
+            `Loss before update: ${lossBefore.toFixed(4)} | ` +
+            `Loss after update: ${lossAfter.toFixed(4)} | ` +
+            `New prediction: ${newPrediction}. ` +
+            `Training loss: ${resultLoss.toFixed(4)}.`;
+
+        console.log("Backpropagation completed.");
+        console.log("Actual digit:", actualLabel);
+        console.log("Prediction before:", predictedBefore);
+        console.log("Prediction after:", newPrediction);
+        console.log("Loss before:", lossBefore);
+        console.log("Loss after:", lossAfter);
+
+    } catch (error) {
+
+        console.error("Backpropagation:", error);
+
+        status.textContent =
+            "Backpropagation error: " + error.message;
+
+    } finally {
+
+        if (predictionBefore) predictionBefore.dispose();
+        if (predictionAfter) predictionAfter.dispose();
+
+        if (batch) {
+            batch.xs.dispose();
+            batch.labels.dispose();
+        }
+
+        running = false;
+
+        forwardBtn.disabled = false;
+        backwardBtn.disabled = false;
+        resetBtn.disabled = false;
+
+    }
+
+}
+
+
+    // ======================================
+    // RESET VISUALIZATION
+    // ======================================
+
+    function resetVisualization() {
+
+        if (running) return;
+
+        clearAnimation();
+
+        inputNodes.forEach(node => {
+            node.value.textContent = "0.00";
+        });
+
+        hidden1Nodes.forEach(node => {
+            node.value.textContent = "0.00";
+        });
+
+        hidden2Nodes.forEach(node => {
+            node.value.textContent = "0.00";
+        });
+
+        outputNodes.forEach((node, i) => {
+            node.value.textContent = String(i);
+        });
+
+        status.textContent =
+            "Visualization reset. Ready for another demonstration.";
+
+    }
+
+    // Button events
+
+    forwardBtn.addEventListener(
+        "click",
+        forwardPropagation
+    );
+
+    backwardBtn.addEventListener(
+        "click",
+        backwardPropagation
+    );
+
+    resetBtn.addEventListener(
+        "click",
+        resetVisualization
+    );
+
+    // Build the network
+
+    buildNetwork();
+
+    console.log("Four-layer ANN visualization initialized.");
+
+    console.log("Architecture: 784 → 128 → 64 → 10");
+
+    console.log("Displayed connections:", edges.length);
 
 })();
 
 
-// =====================================
-// INTERACTIVE DIGIT DRAWING
-// =====================================
+
+// ======================================
+// INITIALIZE INTERACTIVE DIGIT DRAWING
+// ======================================
 
 const drawingGrid = document.getElementById("drawing-grid");
 const clearDrawingBtn = document.getElementById("clear-drawing-btn");
 const predictDigitBtn = document.getElementById("predict-digit-btn");
+const previewCanvas = document.getElementById("processed-preview-canvas");
 
-let isDrawing = false;
+// Store 784 pixels (28 x 28)
 let drawnPixels = new Array(784).fill(0);
+let isDrawing = false;
 
-// Generate 28 x 28 grid
+// Create the 28 x 28 drawing grid
 if (drawingGrid) {
+
     drawingGrid.innerHTML = "";
 
     for (let i = 0; i < 784; i++) {
+
         const pixel = document.createElement("div");
+
         pixel.className = "pixel";
         pixel.dataset.index = i;
 
         drawingGrid.appendChild(pixel);
     }
 }
+
+// Activate a drawing pixel
 
 function activatePixel(pixel) {
 
@@ -1345,7 +1934,7 @@ function activatePixel(pixel) {
     const row = Math.floor(index / 28);
     const col = index % 28;
 
-    // Create a 3 x 3 drawing brush.
+    // Create a 3 x 3 drawing brush
     for (let dy = -1; dy <= 1; dy++) {
 
         for (let dx = -1; dx <= 1; dx++) {
@@ -1368,6 +1957,23 @@ function activatePixel(pixel) {
         }
     }
 }
+
+
+// Initialize processed preview
+function clearProcessedPreview() {
+
+    if (!previewCanvas) return;
+
+    const ctx = previewCanvas.getContext("2d");
+
+    ctx.fillStyle = "black";
+    ctx.fillRect(0, 0, previewCanvas.width, previewCanvas.height);
+}
+
+clearProcessedPreview();
+
+console.log("Drawing grid initialized: 784 pixels.");
+
 
 // Improved drawing interaction
 if (drawingGrid) {
@@ -1442,7 +2048,9 @@ if (clearDrawingBtn) {
         });
 
         document.getElementById("drawing-status").textContent =
-            "Draw a digit to get started.";
+            isModelTrained
+    ? "Draw a digit to get started."
+    : "Please train the ANN first before predicting.";
 
         document.getElementById("predicted-digit").textContent = "?";
     });
@@ -1575,13 +2183,74 @@ function preprocessDrawnPixels() {
         "processed-preview-canvas"
     );
 
-    if (previewCanvas) {
+    
+if (previewCanvas) {
 
-        const previewCtx = previewCanvas.getContext("2d");
+    const previewCtx = previewCanvas.getContext("2d");
 
-        previewCtx.clearRect(0, 0, 28, 28);
-        previewCtx.drawImage(outputCanvas, 0, 0);
+    const cellSize = 20;
+
+    previewCanvas.width = 28 * cellSize;
+    previewCanvas.height = 28 * cellSize;
+
+    const imageData = outputCtx.getImageData(0, 0, 28, 28);
+
+    previewCtx.fillStyle = "black";
+    previewCtx.fillRect(0, 0, 560, 560);
+
+    previewCtx.textAlign = "center";
+    previewCtx.textBaseline = "middle";
+    previewCtx.font = "bold 10px Arial";
+
+    for (let y = 0; y < 28; y++) {
+
+        for (let x = 0; x < 28; x++) {
+
+            const index = (y * 28 + x) * 4;
+
+            const value = imageData.data[index];
+
+            const pixelValue = Math.round(value);
+
+            const posX = x * cellSize;
+            const posY = y * cellSize;
+
+            // Draw grayscale pixel
+            previewCtx.fillStyle =
+                `rgb(${value}, ${value}, ${value})`;
+
+            previewCtx.fillRect(
+                posX,
+                posY,
+                cellSize,
+                cellSize
+            );
+
+            // Choose readable text colour
+            previewCtx.fillStyle =
+                value > 130 ? "black" : "white";
+
+            // Display actual pixel intensity
+            previewCtx.fillText(
+                pixelValue,
+                posX + cellSize / 2,
+                posY + cellSize / 2
+            );
+
+            // Pixel borders
+            previewCtx.strokeStyle = "#555";
+            previewCtx.lineWidth = 0.5;
+
+            previewCtx.strokeRect(
+                posX,
+                posY,
+                cellSize,
+                cellSize
+            );
+        }
     }
+}
+
 
     return pixels;
 }
@@ -1591,18 +2260,17 @@ function preprocessDrawnPixels() {
 // ACTUAL ANN DIGIT PREDICTION
 // =====================================
 
+
 if (predictDigitBtn) {
 
     predictDigitBtn.addEventListener("click", () => {
 
-        // Check whether ANN has been trained
         if (!isModelTrained) {
             document.getElementById("drawing-status").textContent =
                 "Please train the ANN first!";
             return;
         }
 
-        // Check whether user has drawn something
         if (!drawnPixels.some(pixel => pixel > 0)) {
             document.getElementById("drawing-status").textContent =
                 "Please draw a digit first!";
@@ -1611,55 +2279,96 @@ if (predictDigitBtn) {
 
         try {
 
-            
-// Preprocess drawing before ANN prediction
-const processedPixels = preprocessDrawnPixels();
+            // Preprocess YOUR drawing
+            const processedPixels = preprocessDrawnPixels();
 
-const probabilities = tf.tidy(() => {
+            // Pass drawing through the trained ANN
+            const probabilities = tf.tidy(() => {
 
-    const input = tf.tensor2d(
-        processedPixels,
-        [1, 784]
-    );
+                const input = tf.tensor2d(
+                    processedPixels,
+                    [1, 784]
+                );
 
-    const prediction = model.predict(input);
+                const prediction = model.predict(input);
 
-    return Array.from(prediction.dataSync());
+                return Array.from(prediction.dataSync());
 
-});
+            });
 
-
-            // Find the digit with highest probability
+            // Find highest probability
             let predictedDigit = 0;
 
             for (let i = 1; i < 10; i++) {
-
                 if (probabilities[i] > probabilities[predictedDigit]) {
                     predictedDigit = i;
                 }
-
             }
 
-            const confidence =
-                probabilities[predictedDigit] * 100;
+            const confidence = probabilities[predictedDigit] * 100;
 
-            // Display prediction
+            // Display predicted digit
             document.getElementById("predicted-digit").textContent =
                 predictedDigit;
 
             document.getElementById("drawing-status").textContent =
                 "Prediction completed successfully!";
 
-            const confidenceElement =
-                document.getElementById("prediction-confidence");
+            document.getElementById("prediction-confidence").textContent =
+                "Confidence: " + confidence.toFixed(2) + "%";
 
-            if (confidenceElement) {
-                confidenceElement.textContent =
-                    "Confidence: " + confidence.toFixed(2) + "%";
+            // Create probability dashboard
+            const resultContainer =
+                document.getElementById("drawing-result");
+
+            let probabilitySection =
+                document.getElementById("drawing-probabilities");
+
+            if (!probabilitySection) {
+
+                probabilitySection = document.createElement("div");
+
+                probabilitySection.id = "drawing-probabilities";
+
+                resultContainer.appendChild(probabilitySection);
             }
 
-            console.log("Predicted digit:", predictedDigit);
-            console.log("Confidence:", confidence.toFixed(2) + "%");
+            probabilitySection.innerHTML = `
+                <h3>Prediction Probabilities (0–9)</h3>
+                <div class="probability-grid"></div>
+            `;
+
+            const grid =
+                probabilitySection.querySelector(".probability-grid");
+
+            probabilities.forEach((probability, digit) => {
+
+                const percentage = probability * 100;
+
+                const item = document.createElement("div");
+
+                item.className = "probability-item";
+
+                item.innerHTML = `
+                    <strong>${digit}</strong>
+                    <div class="probability-bar">
+                        <div class="probability-fill"
+                             style="width: ${percentage}%">
+                        </div>
+                    </div>
+                    <span>${percentage.toFixed(2)}%</span>
+                `;
+
+                if (digit === predictedDigit) {
+                    item.classList.add("predicted");
+                }
+
+                grid.appendChild(item);
+
+            });
+
+            console.log("Your drawing prediction:", predictedDigit);
+            console.log("Probabilities:", probabilities);
 
         } catch (error) {
 
@@ -1674,3 +2383,70 @@ const probabilities = tf.tidy(() => {
 
 }
 
+// ======================================
+// IMAGE TO NUMERICAL INPUT VISUALIZATION
+// ======================================
+
+const viewPixelValuesBtn =
+    document.getElementById("view-pixel-values-btn");
+
+const pixelValuesPanel =
+    document.getElementById("pixel-values-panel");
+
+const pixelValuesGrid =
+    document.getElementById("pixel-values-grid");
+
+if (viewPixelValuesBtn) {
+
+    viewPixelValuesBtn.addEventListener("click", () => {
+
+        // Toggle panel visibility
+        if (pixelValuesPanel.style.display === "block") {
+
+            pixelValuesPanel.style.display = "none";
+
+            viewPixelValuesBtn.textContent =
+                "View Pixel Values";
+
+            return;
+        }
+
+        // Check whether user has drawn something
+        if (!drawnPixels.some(pixel => pixel > 0)) {
+
+            document.getElementById("drawing-status")
+                .textContent = "Please draw a digit first!";
+
+            return;
+        }
+
+        // Get actual processed ANN input
+        const pixels = preprocessDrawnPixels();
+
+        // Clear previous values
+        pixelValuesGrid.innerHTML = "";
+
+        // Display all 784 numerical values
+        pixels.forEach((value, index) => {
+
+            const pixel = document.createElement("div");
+
+            pixel.className = "pixel-value";
+
+            pixel.textContent = value.toFixed(2);
+
+            pixel.title =
+                `Input ${index + 1} | Row ${Math.floor(index / 28) + 1} | Column ${(index % 28) + 1}`;
+
+            pixelValuesGrid.appendChild(pixel);
+
+        });
+
+        pixelValuesPanel.style.display = "block";
+
+        viewPixelValuesBtn.textContent =
+            "Hide Pixel Values";
+
+    });
+
+}

@@ -717,3 +717,600 @@ section h2 {
     user-select: none;
     -webkit-user-select: none;
 }
+
+
+/* ======================================
+   PREDICTION PROBABILITY DASHBOARD
+====================================== */
+
+.probability-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.probability-subtitle {
+    color: #94a3b8;
+    font-size: 14px;
+    margin-top: -8px;
+}
+
+.probability-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.03);
+    transition: background 0.2s ease;
+}
+
+.probability-row.is-predicted {
+    background: rgba(34,197,94,0.10);
+    border: 1px solid rgba(34,197,94,0.35);
+}
+
+.probability-digit {
+    width: 22px;
+    font-size: 15px;
+    font-weight: 700;
+    color: #e2e8f0;
+}
+
+.probability-track {
+    flex: 1;
+    height: 12px;
+    background: #334155;
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.probability-fill {
+    height: 100%;
+    background: #64748b;
+    border-radius: 20px;
+    transition: width 0.5s ease;
+}
+
+.probability-fill.is-predicted-fill {
+    background: linear-gradient(
+        90deg,
+        #16a34a,
+        #4ade80
+    );
+}
+
+.probability-value {
+    width: 75px;
+    text-align: right;
+    font-size: 13px;
+    color: #cbd5e1;
+    font-variant-numeric: tabular-nums;
+}
+
+.is-predicted .probability-value {
+    color: #4ade80;
+    font-weight: 700;
+}
+
+.predicted-badge {
+    font-size: 10px;
+    font-weight: 800;
+    color: #4ade80;
+    background: rgba(34,197,94,0.15);
+    padding: 5px 8px;
+    border-radius: 5px;
+    white-space: nowrap;
+}
+
+.probability-explanation {
+    margin-top: 20px;
+    padding: 16px;
+    background: rgba(34,197,94,0.08);
+    border: 1px solid rgba(34,197,94,0.25);
+    border-radius: 10px;
+}
+
+.probability-explanation strong {
+    color: #4ade80;
+}
+
+.probability-explanation p {
+    color: #e2e8f0;
+    line-height: 1.6;
+}
+
+.probability-explanation small {
+    color: #94a3b8;
+    line-height: 1.5;
+}
+
+@media (max-width: 600px) {
+
+    .probability-row {
+        gap: 7px;
+        padding: 9px 6px;
+    }
+
+    .probability-value {
+        width: 58px;
+        font-size: 11px;
+    }
+
+    .predicted-badge {
+        font-size: 8px;
+        padding: 4px;
+    }
+
+}
+
+
+/* ==================================
+   DRAWING PREDICTION PROBABILITY BARS
+================================== */
+
+#drawing-probabilities {
+    margin-top: 30px;
+    padding: 20px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+#drawing-probabilities h3 {
+    text-align: center;
+    margin-bottom: 22px;
+}
+
+#drawing-probabilities .probability-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+}
+
+#drawing-probabilities .probability-item {
+    display: grid;
+    grid-template-columns: 30px 1fr 85px;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: #3b4a60;
+    border-radius: 9px;
+    box-sizing: border-box;
+}
+
+#drawing-probabilities .probability-bar {
+    width: 100%;
+    height: 13px;
+    background: #253449;
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+#drawing-probabilities .probability-fill {
+    height: 100%;
+    min-width: 0;
+    background: #38bdf8;
+    border-radius: 20px;
+    transition: width 0.5s ease;
+}
+
+#drawing-probabilities .probability-item.predicted {
+    background: rgba(34, 197, 94, 0.15);
+    border: 1px solid #22c55e;
+}
+
+#drawing-probabilities .probability-item.predicted
+.probability-fill {
+    background: #22c55e;
+}
+
+#drawing-probabilities .probability-item strong {
+    text-align: center;
+}
+
+#drawing-probabilities .probability-item span {
+    text-align: right;
+    font-weight: bold;
+}
+
+@media (max-width: 600px) {
+    #drawing-probabilities .probability-item {
+        grid-template-columns: 22px 1fr 70px;
+        gap: 8px;
+        padding: 10px;
+    }
+}
+
+
+/* ======================================
+   PIXEL VALUES VISUALIZATION
+====================================== */
+
+#pixel-values-panel {
+    margin: 30px auto;
+    padding: 25px;
+    background: #334155;
+    border-radius: 12px;
+    width: 95%;
+    box-sizing: border-box;
+}
+
+#pixel-values-panel h3,
+#pixel-values-panel h4 {
+    text-align: center;
+    color: white;
+}
+
+#pixel-values-panel > p {
+    text-align: center;
+    color: #94a3b8;
+}
+
+.pixel-info {
+    background: #1e293b;
+    padding: 18px;
+    border-radius: 10px;
+    line-height: 2;
+    color: #e2e8f0;
+    margin: 20px 0;
+}
+
+#pixel-values-grid {
+    display: grid;
+    grid-template-columns: repeat(14, minmax(0, 1fr));
+    gap: 5px;
+    max-height: 350px;
+    overflow-y: auto;
+    padding: 15px;
+    background: #1e293b;
+    border-radius: 10px;
+}
+
+.pixel-value {
+    background: #475569;
+    color: white;
+    text-align: center;
+    padding: 7px 2px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-family: monospace;
+}
+
+.pixel-value:hover {
+    background: #2563eb;
+}
+
+@media (max-width: 600px) {
+    #pixel-values-grid {
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+    }
+
+    #pixel-values-panel {
+        padding: 12px;
+    }
+}
+
+#processed-preview-canvas {
+    width: 100%;
+    max-width: 420px;
+    height: auto;
+    aspect-ratio: 1 / 1;
+    image-rendering: pixelated;
+    border: 3px solid #64748b;
+    border-radius: 10px;
+}
+
+
+/* =========================================
+   FUTURISTIC ANN LEARNING VISUALIZATION
+========================================= */
+
+.network-visual-card {
+    background: #111827;
+    border: 1px solid #334155;
+    border-radius: 18px;
+    padding: 28px;
+    overflow: hidden;
+}
+
+.network-visual-card h2 {
+    font-size: 25px;
+    color: #f8fafc;
+    letter-spacing: 0.5px;
+}
+
+.network-visual-card > p {
+    color: #94a3b8;
+    margin-bottom: 24px;
+}
+
+/* Architecture information */
+
+.network-info-bar {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 22px;
+}
+
+.network-info-bar > div {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 10px;
+    padding: 16px;
+}
+
+.network-info-bar span {
+    display: block;
+    color: #94a3b8;
+    font-size: 10px;
+    letter-spacing: 1px;
+    margin-bottom: 9px;
+}
+
+.network-info-bar strong {
+    color: #38bdf8;
+    font-size: 15px;
+}
+
+/* Animation controls */
+
+.network-controls {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+}
+
+.network-controls button {
+    border: 1px solid #475569;
+    border-radius: 9px;
+    padding: 12px 20px;
+    font-weight: 700;
+    color: white;
+    background: #2563eb;
+    cursor: pointer;
+    transition: 0.25s;
+}
+
+.network-controls button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 18px rgba(56, 189, 248, 0.3);
+}
+
+#backward-btn {
+    background: #7c3aed;
+}
+
+#reset-network-btn {
+    background: #334155;
+}
+
+.network-controls button:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Network status */
+
+#network-status {
+    background: rgba(14, 165, 233, 0.08);
+    border: 1px solid rgba(56, 189, 248, 0.2);
+    color: #38bdf8;
+    border-radius: 9px;
+    padding: 15px;
+    margin-bottom: 20px;
+    text-align: center;
+    line-height: 1.6;
+}
+
+/* Network stage */
+
+.network-stage {
+    position: relative;
+    width: 100%;
+    min-height: 480px;
+    background:
+        radial-gradient(
+            ellipse at center,
+            #172554 0%,
+            #0b1220 55%,
+            #020617 100%
+        );
+    border: 1px solid #1e40af;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow:
+        inset 0 0 60px rgba(37, 99, 235, 0.12),
+        0 0 25px rgba(37, 99, 235, 0.08);
+}
+
+/* Subtle background grid */
+
+.network-stage::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(
+            rgba(56, 189, 248, 0.045) 1px,
+            transparent 1px
+        ),
+        linear-gradient(
+            90deg,
+            rgba(56, 189, 248, 0.045) 1px,
+            transparent 1px
+        );
+    background-size: 30px 30px;
+    pointer-events: none;
+}
+
+/* SVG visualization */
+
+#network-diagram {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    min-height: 480px;
+    padding: 10px;
+    overflow-x: auto;
+    background: transparent;
+}
+
+#network-diagram svg {
+    display: block;
+    width: 100%;
+    min-width: 650px;
+    height: auto;
+    overflow: visible;
+}
+
+/* Connections */
+
+.network-edge {
+    stroke: #334155;
+    stroke-width: 1;
+    opacity: 0.4;
+    transition: stroke 0.3s, opacity 0.3s;
+}
+
+.network-edge.active-forward {
+    stroke: #38bdf8;
+    stroke-width: 2.5;
+    opacity: 1;
+    filter: drop-shadow(0 0 5px #38bdf8);
+}
+
+.network-edge.active-backward {
+    stroke: #c084fc;
+    stroke-width: 2.5;
+    opacity: 1;
+    filter: drop-shadow(0 0 5px #c084fc);
+}
+
+/* Neurons */
+
+.network-neuron {
+    stroke-width: 2;
+    stroke: rgba(255,255,255,0.85);
+    transition: 0.3s;
+}
+
+.input-neuron {
+    fill: #2563eb;
+    filter: drop-shadow(0 0 5px #2563eb);
+}
+
+.hidden-neuron {
+    fill: #9333ea;
+    filter: drop-shadow(0 0 5px #9333ea);
+}
+
+.output-neuron {
+    fill: #16a34a;
+    filter: drop-shadow(0 0 5px #16a34a);
+}
+
+/* Active neuron glow */
+
+.neuron-group.active-neuron {
+    filter: drop-shadow(0 0 12px #38bdf8);
+}
+
+.network-layer-label {
+    fill: #e2e8f0;
+    font-size: 16px;
+    font-weight: bold;
+    text-anchor: middle;
+}
+
+/* Signal animations */
+
+.network-edge.active-forward {
+    animation: forwardGlow 0.8s ease-in-out infinite alternate;
+}
+
+.network-edge.active-backward {
+    animation: backwardGlow 0.8s ease-in-out infinite alternate;
+}
+
+@keyframes forwardGlow {
+    from {
+        opacity: 0.4;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes backwardGlow {
+    from {
+        opacity: 0.4;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Legend */
+
+.network-legend {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin: 22px 0;
+    color: #cbd5e1;
+    font-size: 13px;
+}
+
+/* Explanation panel */
+
+.network-explanation {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 12px;
+    padding: 20px;
+    margin-top: 20px;
+}
+
+.network-explanation h3 {
+    color: #38bdf8;
+    margin-bottom: 12px;
+}
+
+.network-explanation p {
+    color: #cbd5e1;
+    line-height: 1.7;
+}
+
+/* Responsive */
+
+@media (max-width: 700px) {
+
+    .network-info-bar {
+        grid-template-columns: 1fr;
+    }
+
+    .network-stage {
+        min-height: 380px;
+    }
+
+    #network-diagram {
+        min-height: 380px;
+    }
+
+    .network-visual-card {
+        padding: 15px;
+    }
+
+    .network-controls {
+        flex-direction: column;
+    }
+
+    .network-controls button {
+        width: 100%;
+    }
+}

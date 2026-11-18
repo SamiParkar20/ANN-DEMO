@@ -30,33 +30,45 @@
         <p id="status">Initializing TensorFlow.js...</p>
     </section>
 
-    <section class="architecture-card">
-        <h2>Neural Network Architecture</h2>
+    
+<section class="architecture-card">
+    <h2>Neural Network Architecture</h2>
 
-        <div class="architecture">
-            <div class="layer input-layer">
-                <h3>Input Layer</h3>
-                <strong>784</strong>
-                <p>Pixel values</p>
-            </div>
+    <div class="architecture">
 
-            <div class="arrow">→</div>
-
-            <div class="layer hidden-layer">
-                <h3>Hidden Layer</h3>
-                <strong>128</strong>
-                <p>ReLU</p>
-            </div>
-
-            <div class="arrow">→</div>
-
-            <div class="layer output-layer">
-                <h3>Output Layer</h3>
-                <strong>10</strong>
-                <p>Softmax (0–9)</p>
-            </div>
+        <div class="layer input-layer">
+            <h3>Input Layer</h3>
+            <strong>784</strong>
+            <p>Pixel values</p>
         </div>
-    </section>
+
+        <div class="arrow">→</div>
+
+        <div class="layer hidden-layer">
+            <h3>Hidden Layer 1</h3>
+            <strong>128</strong>
+            <p>ReLU</p>
+        </div>
+
+        <div class="arrow">→</div>
+
+        <div class="layer hidden-layer">
+            <h3>Hidden Layer 2</h3>
+            <strong>64</strong>
+            <p>ReLU</p>
+        </div>
+
+        <div class="arrow">→</div>
+
+        <div class="layer output-layer">
+            <h3>Output Layer</h3>
+            <strong>10</strong>
+            <p>Softmax (0–9)</p>
+        </div>
+
+    </div>
+</section>
+
 
     <section class="training-card">
 
@@ -99,11 +111,8 @@
     </section>
 
     <section class="chart-card">
-
         <h2>Training Loss vs Epoch</h2>
-
         <canvas id="loss-chart"></canvas>
-
     </section>
 
     <section class="weights-card">
@@ -134,27 +143,51 @@
 
     </section>
 
+    
+<!-- ======================================
+     3D ANN LEARNING VISUALIZATION
+====================================== -->
+
 <section class="network-visual-card">
 
-    <h2>ANN Learning Visualization</h2>
+    <h2>3D ANN Learning Visualization</h2>
 
     <p>
-        Watch neurons communicate through forward propagation
-        and backpropagation.
+        Explore how handwritten digits travel through
+        an Artificial Neural Network.
     </p>
+
+    <div class="network-info-bar">
+
+        <div>
+            <span>NETWORK ARCHITECTURE</span>
+            <strong>784 → 128 → 64 → 10</strong>
+        </div>
+
+        <div>
+            <span>ACTIVATION</span>
+            <strong>ReLU / Softmax</strong>
+        </div>
+
+        <div>
+            <span>LEARNING METHOD</span>
+            <strong>Backpropagation</strong>
+        </div>
+
+    </div>
 
     <div class="network-controls">
 
         <button id="forward-btn">
-            Forward Propagation
+            ▶ Forward Propagation
         </button>
 
         <button id="backward-btn">
-            Backpropagation
+            ↶ Backpropagation
         </button>
 
         <button id="reset-network-btn">
-            Reset Visualization
+            ↻ Reset
         </button>
 
     </div>
@@ -163,20 +196,37 @@
         Ready to visualize the neural network.
     </div>
 
-    <div id="network-diagram">
-        <!-- Neural network diagram will be generated here -->
+    <div class="network-stage">
+
+        <div id="network-diagram">
+            <!-- Animated 3D network will appear here -->
+        </div>
+
     </div>
 
     <div class="network-legend">
 
-        <span>🔵 Input layer</span>
-        <span>🟣 Hidden layer</span>
-        <span>🟢 Output layer</span>
+        <span>🔵 Input Signals</span>
+        <span>🟣 Hidden Neurons</span>
+        <span>🟢 Output Neurons</span>
+        <span>🔴 Backpropagation Signals</span>
+
+    </div>
+
+    <div class="network-explanation">
+
+        <h3>What's happening inside the ANN?</h3>
+
+        <p id="network-explanation-text">
+            Click Forward Propagation to watch information
+            travel through the neural network.
+        </p>
 
     </div>
 
 </section>
 
+<!-- END 3D ANN VISUALIZATION -->
 
 
     <!-- INTERACTIVE DIGIT DRAWING -->
@@ -190,28 +240,28 @@
             using the pixel grid below.
         </p>
 
-        
-<div class="drawing-container">
+        <div class="drawing-container">
 
-    <div class="drawing-input-panel">
-        <h3>Your Drawing</h3>
-        <div id="drawing-grid"></div>
-    </div>
+            <div class="drawing-input-panel">
+                <h3>Your Drawing</h3>
+                <div id="drawing-grid"></div>
+            </div>
 
-    <div class="processed-preview">
-        <h3>Processed Image (28 × 28)</h3>
+            <div class="processed-preview">
 
-        <canvas
-            id="processed-preview-canvas"
-            width="28"
-            height="28">
-        </canvas>
+                <h3>Processed Image (28 × 28)</h3>
 
-        <p>ANN Input: 784 pixels</p>
-    </div>
+                <canvas
+                    id="processed-preview-canvas"
+                    width="560"
+                    height="560">
+                </canvas>
 
-</div>
+                <p>ANN Input: 784 pixels</p>
 
+            </div>
+
+        </div>
 
         <div class="drawing-controls">
 
@@ -226,8 +276,8 @@
         </div>
 
         <div id="drawing-status">
-            Draw a digit to get started.
-        </div>
+    Please train the ANN first before predicting a digit.
+</div>
 
         <div id="drawing-result">
 
@@ -245,6 +295,17 @@
 
     <!-- END INTERACTIVE DIGIT DRAWING -->
 
+    <section class="samples-card">
+
+        <h2>MNIST Dataset Preview</h2>
+
+        <p>Sample handwritten digits from the dataset.</p>
+
+        <div id="sample-grid">
+            Waiting for dataset...
+        </div>
+
+    </section>
 
     <section class="testing-card">
 
@@ -256,18 +317,6 @@
 
         <div id="prediction-result">
             Awaiting trained model...
-        </div>
-
-    </section>
-
-    <section class="samples-card">
-
-        <h2>MNIST Dataset Preview</h2>
-
-        <p>Sample handwritten digits from the dataset.</p>
-
-        <div id="sample-grid">
-            Waiting for dataset...
         </div>
 
     </section>
