@@ -1184,10 +1184,10 @@ section h2 {
 }
 
 .network-edge.active-backward {
-    stroke: #c084fc;
+    stroke: #ef4444;
     stroke-width: 2.5;
     opacity: 1;
-    filter: drop-shadow(0 0 5px #c084fc);
+    filter: drop-shadow(0 0 5px #ef4444);
 }
 
 /* Neurons */
