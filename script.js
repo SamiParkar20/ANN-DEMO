@@ -11,16 +11,21 @@ let initialFullWeights = [];
 let initialWeightSnapshot = [];
 let previousWeightSnapshot = [];
 
-// Five connections from different input neurons
-// to the first hidden neuron.
-const WEIGHT_INDICES = [0, 128, 256, 384, 512];
+// Monitor five connections from central image pixels
+const WEIGHT_INDICES = [
+    51968,
+    52096,
+    52224,
+    52352,
+    52480
+];
 
 const WEIGHT_LABELS = [
-    "Pixel 1 → Hidden 1",
-    "Pixel 2 → Hidden 1",
-    "Pixel 3 → Hidden 1",
-    "Pixel 4 → Hidden 1",
-    "Pixel 5 → Hidden 1"
+    "Pixel 407 → Hidden 1",
+    "Pixel 408 → Hidden 1",
+    "Pixel 409 → Hidden 1",
+    "Pixel 410 → Hidden 1",
+    "Pixel 411 → Hidden 1"
 ];
 
 
@@ -1371,8 +1376,12 @@ hidden2Nodes.forEach((hidden, i) => {
     }
 
     
-async function activateConnections(layer, direction) {
-
+async function activateConnections(
+    layer,
+    direction,
+    progressNodes = null,
+    progressValues = null
+) {
     const matchingEdges = edges.filter(
         edge => edge.layer === layer
     );
@@ -1390,14 +1399,25 @@ async function activateConnections(layer, direction) {
             edge.line.classList.add(activeClass);
         });
 
+        // Reveal one neuron's actual activation at a time
+        if (progressNodes && progressValues) {
+
+            const nodeIndex = Math.floor(i / 3);
+
+            if (nodeIndex < progressNodes.length) {
+                updateNodeValues(
+                    [progressNodes[nodeIndex]],
+                    [progressValues[nodeIndex]]
+                );
+            }
+        }
+
         await sleep(250);
 
         group.forEach(edge => {
             edge.line.classList.remove(activeClass);
         });
-
     }
-
 }
 
 
@@ -1505,43 +1525,18 @@ async function activateConnections(layer, direction) {
             const probabilities =
                 Array.from(outputTensor.dataSync());
 
-            // Select strongest 8 input pixels
+// Display 8 representative pixels from different image locations
+const selectedInputs = [154, 233, 243, 322, 399, 413, 542, 630]
+    .map(index => sample.values[index]);
 
-            const selectedInputs = sample.values
-                .map((value, index) => ({ value, index }))
-                .sort((a, b) => b.value - a.value)
-                .slice(0, 8);
+// Select the first 8 actual neurons from Hidden Layer 1
+const selectedHidden1 = hidden1Values.slice(0, 8);
 
-            // Select strongest 8 first hidden neurons
+// Select the first 8 actual neurons from Hidden Layer 2
+const selectedHidden2 = hidden2Values.slice(0, 8);
 
-            const selectedHidden1 = hidden1Values
-                .map((value, index) => ({ value, index }))
-                .sort((a, b) => b.value - a.value)
-                .slice(0, 8);
-
-            // Select strongest 8 second hidden neurons
-
-            const selectedHidden2 = hidden2Values
-                .map((value, index) => ({ value, index }))
-                .sort((a, b) => b.value - a.value)
-                .slice(0, 8);
-
-            updateNodeValues(
-                inputNodes,
-                selectedInputs.map(item => item.value)
-            );
-
-            updateNodeValues(
-                hidden1Nodes,
-                selectedHidden1.map(item => item.value)
-            );
-
-            updateNodeValues(
-                hidden2Nodes,
-                selectedHidden2.map(item => item.value)
-            );
-
-            updateNodeValues(outputNodes, probabilities);
+           // Display input pixel values first
+updateNodeValues(inputNodes, selectedInputs);
 
             // STEP 1
 
@@ -1555,7 +1550,10 @@ async function activateConnections(layer, direction) {
 
             await activateConnections("forward-1", "forward");
 
-            activateNodes(hidden1Nodes);
+// Display actual Hidden Layer 1 activations
+updateNodeValues(hidden1Nodes, selectedHidden1);
+
+activateNodes(hidden1Nodes);
 
             // STEP 2
 
@@ -1566,9 +1564,12 @@ async function activateConnections(layer, direction) {
 
             await sleep(1000);
 
-            activateConnections("forward-2", "forward");
+            await activateConnections("forward-2", "forward");
 
-            activateNodes(hidden2Nodes);
+// Display actual Hidden Layer 2 activations
+updateNodeValues(hidden2Nodes, selectedHidden2);
+
+activateNodes(hidden2Nodes);
 
             // STEP 3
 
@@ -1581,7 +1582,10 @@ async function activateConnections(layer, direction) {
 
             await activateConnections("forward-3", "forward");
 
-            activateNodes(outputNodes);
+// Display actual output probabilities
+updateNodeValues(outputNodes, probabilities);
+
+activateNodes(outputNodes);
 
             // STEP 4
 
@@ -1664,6 +1668,29 @@ async function backwardPropagation() {
             Math.max(...labels)
         );
 
+        // Calculate actual activations for this training sample
+const hidden1BeforeTensor = model.layers[0].apply(batch.xs);
+
+const hidden1BeforeValues =
+    Array.from(hidden1BeforeTensor.dataSync());
+
+const hidden2BeforeTensor = model.layers[1].apply(hidden1BeforeTensor);
+
+const hidden2BeforeValues =
+    Array.from(hidden2BeforeTensor.dataSync());
+
+// Get the actual input pixel values
+const inputBeforeValues = Array.from(batch.xs.dataSync());
+
+// Display representative input pixels
+const selectedInputBefore = [
+    154, 233, 243, 322, 399, 413, 542, 630
+].map(index => inputBeforeValues[index]);
+
+// Release temporary tensors
+hidden1BeforeTensor.dispose();
+hidden2BeforeTensor.dispose();
+
         // STEP 2: Make prediction BEFORE updating weights
 
         predictionBefore = model.predict(batch.xs);
@@ -1713,11 +1740,13 @@ async function backwardPropagation() {
             "STEP 3: Error gradients travel backwards from Output to Hidden Layer 2.";
 
         await activateConnections(
-            "forward-3",
-            "backward"
-        );
+    "forward-3",
+    "backward",
+    hidden2Nodes,
+    hidden2BeforeValues.slice(0, 8)
+);
 
-        activateNodes(hidden2Nodes);
+activateNodes(hidden2Nodes);
 
         await sleep(800);
 
@@ -1727,11 +1756,13 @@ async function backwardPropagation() {
             "STEP 4: Gradients continue backwards through Hidden Layer 2 to Hidden Layer 1.";
 
         await activateConnections(
-            "forward-2",
-            "backward"
-        );
+    "forward-2",
+    "backward",
+    hidden1Nodes,
+    hidden1BeforeValues.slice(0, 8)
+);
 
-        activateNodes(hidden1Nodes);
+activateNodes(hidden1Nodes);
 
         await sleep(800);
 
@@ -1741,11 +1772,13 @@ async function backwardPropagation() {
             "STEP 5: Backpropagation reaches the input side of the network.";
 
         await activateConnections(
-            "forward-1",
-            "backward"
-        );
+    "forward-1",
+    "backward",
+    inputNodes,
+    selectedInputBefore
+);
 
-        activateNodes(inputNodes);
+activateNodes(inputNodes);
 
         await sleep(1200);
 
@@ -1758,6 +1791,28 @@ async function backwardPropagation() {
             batch.xs,
             batch.labels
         );
+
+        // Refresh Live Weight Monitoring after backpropagation
+displayWeights(0);
+
+// Refresh hidden layer activations using updated weights
+const hidden1AfterTensor = model.layers[0].apply(batch.xs);
+
+const hidden1AfterValues =
+    Array.from(hidden1AfterTensor.dataSync());
+
+const hidden2AfterTensor = model.layers[1].apply(hidden1AfterTensor);
+
+const hidden2AfterValues =
+    Array.from(hidden2AfterTensor.dataSync());
+
+// Update displayed hidden neuron values
+updateNodeValues(hidden1Nodes, hidden1AfterValues.slice(0, 8));
+updateNodeValues(hidden2Nodes, hidden2AfterValues.slice(0, 8));
+
+// Release temporary tensors
+hidden1AfterTensor.dispose();
+hidden2AfterTensor.dispose();
 
         // STEP 8: Check prediction after weight update
 
