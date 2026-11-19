@@ -24,7 +24,7 @@ const WEIGHT_LABELS = [
 ];
 
 
-const EPOCHS = 5;
+const EPOCHS = 10;
 const BATCH_SIZE = 128;
 const STEPS_PER_EPOCH = 150;
 
